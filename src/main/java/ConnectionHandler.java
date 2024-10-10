@@ -3,6 +3,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
+import command.Command;
+import command.CommandParser;
+
 public class ConnectionHandler implements Runnable {
     private Socket connectionSocket;
 
@@ -18,22 +21,29 @@ public class ConnectionHandler implements Runnable {
                 )
             );
 
-            String line = "";
+            CommandParser commandParser = new CommandParser(reader);
 
             while (true) {
-                line = reader.readLine();
+                Command command = commandParser.pars();
 
-                if (line.equals("DOCS")) {
+                if (command.getName().equals("COMMAND")) {
                     connectionSocket.getOutputStream().write(
                         "*0\r\n".getBytes()
                     );
                 }
 
-                if (line.equals("PING")) {
+                if (command.getName().equals("PING")) {
                     connectionSocket.getOutputStream().write(
                         "+PONG\r\n".getBytes()
                     );
                 }
+
+                if (command.getName().equals("ECHO")) {
+                    connectionSocket.getOutputStream().write(
+                        ("+" + command.getParams().getFirst() + "\r\n").getBytes()
+                    );
+                }
+                
             }
         }
         catch (IOException ioException) {
