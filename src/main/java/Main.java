@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -18,6 +20,34 @@ public class Main {
 
             // Wait for connection from client.
             clientSocket = serverSocket.accept();
+
+            System.out.println("Read streem");
+            BufferedReader reader = new BufferedReader(
+                new InputStreamReader(
+                    clientSocket.getInputStream()
+                )
+            );
+
+            String line = "";
+
+            while (true) {
+                try {
+                    line = reader.readLine();
+
+                    if (line.equals("DOCS")) {
+                        clientSocket.getOutputStream().write(
+                            "*0\r\n".getBytes()
+                        );
+                    }
+
+                    if (line.equals("PING")) {
+                        clientSocket.getOutputStream().write("+PONG\r\n".getBytes());
+                    }
+                }
+                catch (IOException i) {
+                    System.out.println(i);
+                }
+            }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         } finally {
@@ -31,3 +61,4 @@ public class Main {
         }
     }
 }
+
