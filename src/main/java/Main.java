@@ -41,7 +41,9 @@ public class Main {
                     }
 
                     if (line.equals("PING")) {
-                        clientSocket.getOutputStream().write("+PONG\r\n".getBytes());
+                        clientSocket.getOutputStream().write(
+                            "+PONG\r\n".getBytes()
+                        );
                     }
                 }
                 catch (IOException i) {
