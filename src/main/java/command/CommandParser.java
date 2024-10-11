@@ -7,30 +7,72 @@ import java.util.ArrayList;
 public class CommandParser {
     private BufferedReader reader;
 
+    public final byte ASTERISK_BYTE = '*';
+    public final byte DOLLAR_BYTE = '$';
+
+
     public CommandParser(BufferedReader reader) {
         this.reader = reader;
     }
 
-    public Command pars() throws IOException {
-        String line = reader.readLine();
-        int size = Integer.valueOf(line.substring(1));
-        System.out.println("> " + size);
+    public ArrayList<String> process() throws IOException {
+        byte b = (byte) reader.read();
 
-        reader.readLine();
-        String commandName = reader.readLine().toUpperCase();
-        System.out.println("CN > " + commandName);
-
-        ArrayList<String> commandParams = new ArrayList<String>();
-
-        for (int i = 1; i < size; i++) {
-            reader.readLine();
-            commandParams.add(reader.readLine());
-            System.out.println("CP > " + commandParams.getLast());
+        switch (b) {
+            case DOLLAR_BYTE:
+                return processBulkReply();
+            case ASTERISK_BYTE:
+                return processMultiBulkReply();
         }
 
-        return new Command(
-            commandName,
-            commandParams
-        );
+        return new ArrayList<String>();
+    }
+
+    public ArrayList<String> processMultiBulkReply () throws IOException {
+        int len = readIntCrLf();
+
+        if (len == -1) {
+            return null;
+        }
+
+        ArrayList<String> record = new ArrayList<String>();
+
+        for (int i = 0; i < len; i++) {
+            record.addAll(process());
+        }
+
+        return record;
+    }
+
+    public ArrayList<String> processBulkReply() throws IOException {
+        int len = readIntCrLf();
+
+        if (len == -1) {
+            return null;
+        }
+
+        char[] cbuf = new char[len];
+        reader.read(cbuf);
+        reader.read();  // get rid of \r
+        reader.read();  // get rid of \n
+
+        ArrayList<String> record = new ArrayList<String>();
+        record.add(new String(cbuf));
+
+        return record;
+    }
+
+    public int readIntCrLf() throws IOException {
+        byte b = '0';
+        int size = 0;
+
+        while (b != '\r') {
+            size = size * 10 + (b - '0');
+            b = (byte) reader.read();
+        }
+
+        reader.read();  // get rid of \n
+
+        return size;
     }
 }

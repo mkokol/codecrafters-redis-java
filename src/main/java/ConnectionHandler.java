@@ -2,9 +2,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.ArrayList;
 
-import command.Command;
 import command.CommandParser;
+import command.CommandResponce;
 
 public class ConnectionHandler implements Runnable {
     private Socket connectionSocket;
@@ -22,28 +23,13 @@ public class ConnectionHandler implements Runnable {
             );
 
             CommandParser commandParser = new CommandParser(reader);
+            CommandResponce commandResponce = new CommandResponce(
+                connectionSocket.getOutputStream()
+            );
 
             while (true) {
-                Command command = commandParser.pars();
-
-                if (command.getName().equals("COMMAND")) {
-                    connectionSocket.getOutputStream().write(
-                        "*0\r\n".getBytes()
-                    );
-                }
-
-                if (command.getName().equals("PING")) {
-                    connectionSocket.getOutputStream().write(
-                        "+PONG\r\n".getBytes()
-                    );
-                }
-
-                if (command.getName().equals("ECHO")) {
-                    connectionSocket.getOutputStream().write(
-                        ("+" + command.getParams().getFirst() + "\r\n").getBytes()
-                    );
-                }
-                
+                ArrayList<String> command = commandParser.process();
+                commandResponce.handleResponce(command);
             }
         }
         catch (IOException ioException) {
