@@ -3,8 +3,10 @@ package command;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Timer;
 
 import data.Storage;
+import data.StorageCleanUpTask;
 
 
 public class CommandResponce {
@@ -15,6 +17,10 @@ public class CommandResponce {
     }
 
     public void handleResponce(ArrayList<String> command) throws IOException {
+        if (command.size() == 0) {
+            return;
+        }
+
         switch (command.getFirst().toUpperCase()) {
             case "COMMAND":
                     send("*0\r\n");
@@ -27,11 +33,27 @@ public class CommandResponce {
                 break;
             case "SET":
                     Storage.set(command.get(1), command.get(2));
+
+                    if (
+                        command.size() >= 5
+                        && command.get(3).toUpperCase().equals("PX")
+                    ) {
+                        (new Timer()).schedule(
+                            new StorageCleanUpTask(command.get(1)),
+                            Integer.parseInt(command.get(4))
+                        );
+                    }
+
                     send("+OK\r\n");
                 break;
             case "GET":
                     String val = Storage.get(command.get(1));
-                    send("$" + val.length() + "\r\n" + val + "\r\n");
+
+                    if (val != null) {
+                        send("$" + val.length() + "\r\n" + val + "\r\n");
+                    } else {
+                        send("$-1\r\n");
+                    }
                 break;
         }
     }

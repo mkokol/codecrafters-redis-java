@@ -12,5 +12,9 @@ public class Storage {
     public static String get(String key) {
         return data.get(key);
     }
+
+    public static void delete(String key) {
+        data.remove(key);
+    }
 }
 
