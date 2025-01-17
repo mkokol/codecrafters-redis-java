@@ -6,6 +6,7 @@ import data.StorageCleanUpTask;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 
 public class CommandResponce {
@@ -67,6 +68,17 @@ public class CommandResponce {
                     config.getRdbFileName().length(), config.getRdbFileName()));
           }
         }
+        break;
+      case "KEYS":
+        List<String> keys = Storage.getKeys();
+        StringBuilder responce = new StringBuilder();
+        responce.append("*" + String.valueOf(keys.size()) + "\r\n");
+
+        for (String key : keys) {
+          responce.append("$" + String.valueOf(key.length()) + "\r\n" + key + "\r\n");
+        }
+
+        send(responce.toString());
         break;
       default:
         System.out.println(
