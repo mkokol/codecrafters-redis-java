@@ -1,8 +1,10 @@
 import conf.Config;
 import data.RdbFile;
+import data.Storage;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
   public static void main(String[] args) throws IOException {
@@ -26,6 +28,7 @@ public class Main {
     }
 
     RdbFile.parse(config);
+    Storage.runCleanUp(10, TimeUnit.MINUTES);
 
     try {
       serverSocket = new ServerSocket(port);
