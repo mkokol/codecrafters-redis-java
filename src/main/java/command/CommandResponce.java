@@ -6,16 +6,20 @@ import data.StorageCleanUpTask;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 
 public class CommandResponce {
   private final OutputStream outSocket;
   private final Config config;
+  private final CommandBuilder commandBuilder;
 
-  public CommandResponce(OutputStream outSocket, Config config) {
+  public CommandResponce(OutputStream outSocket, Config config, CommandBuilder commandBuilder) {
     this.outSocket = outSocket;
     this.config = config;
+    this.commandBuilder = commandBuilder;
   }
 
   public void handleResponce(ArrayList<String> command) throws IOException {
@@ -25,7 +29,7 @@ public class CommandResponce {
 
     switch (command.getFirst().toUpperCase()) {
       case "COMMAND":
-        send("*0\r\n");
+        send(commandBuilder.buildList(Collections.emptyList()));
         break;
 
       case "PING":
@@ -57,6 +61,10 @@ public class CommandResponce {
         }
         break;
 
+      case "KEYS":
+        send(commandBuilder.buildList(Storage.getKeys()));
+        break;
+
       case "CONFIG":
         if (command.get(1).toUpperCase().equals("GET")) {
           if (command.get(2).toLowerCase().equals("dir")) {
@@ -75,15 +83,18 @@ public class CommandResponce {
         }
         break;
 
-      case "KEYS":
-        List<String> keys = Storage.getKeys();
-        StringBuilder responce = new StringBuilder("*" + String.valueOf(keys.size()) + "\r\n");
+      case "INFO":
+        Map<String, String> info = new HashMap<>();
+        info.put("role", "master");
+        StringBuilder infoResponce = new StringBuilder();
 
-        for (String key : keys) {
-          responce.append("$" + String.valueOf(key.length()) + "\r\n" + key + "\r\n");
+        for (var entry : info.entrySet()) {
+          infoResponce.append(entry.getKey() + ":" + entry.getValue());
         }
 
-        send(responce.toString());
+        String infoResponceMsg = infoResponce.toString();
+        send("$" + String.valueOf(infoResponceMsg.length()) + "\r\n" + infoResponceMsg + "\r\n");
+
         break;
 
       default:

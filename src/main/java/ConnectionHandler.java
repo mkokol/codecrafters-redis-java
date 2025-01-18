@@ -1,3 +1,4 @@
+import command.CommandBuilder;
 import command.CommandParser;
 import command.CommandResponce;
 import conf.Config;
@@ -22,8 +23,9 @@ public class ConnectionHandler implements Runnable {
           new InputStreamReader(connectionSocket.getInputStream());
       BufferedReader reader = new BufferedReader(inputStreamReader);
       CommandParser commandParser = new CommandParser(reader);
+      CommandBuilder commandBuilder = new CommandBuilder();
       CommandResponce commandResponce =
-          new CommandResponce(connectionSocket.getOutputStream(), config);
+          new CommandResponce(connectionSocket.getOutputStream(), config, commandBuilder);
 
       while (true) {
         ArrayList<String> command = commandParser.process();
