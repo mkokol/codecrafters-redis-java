@@ -10,7 +10,6 @@ public class Main {
   public static void main(String[] args) throws IOException {
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
-    int port = 6379;
     Config config = new Config();
 
     for (int i = 0; i < args.length; i += 2) {
@@ -20,6 +19,9 @@ public class Main {
           break;
         case "--dbfilename":
           config.setRdbFileName(args[i + 1]);
+          break;
+        case "--port":
+          config.setPort(Integer.parseInt(args[i + 1]));
           break;
 
         default:
@@ -31,11 +33,11 @@ public class Main {
     Storage.runCleanUp(10, TimeUnit.MINUTES);
 
     try {
-      serverSocket = new ServerSocket(port);
+      serverSocket = new ServerSocket(config.getPort());
       // Since the tester restarts your program quite often, setting SO_REUSEADDR
       // ensures that we don't run into 'Address already in use' errors
       serverSocket.setReuseAddress(true);
-      System.out.println("Listen on: localhost:" + port);
+      System.out.println("Listen on: localhost:" + config.getPort());
 
       while (true) {
         ConnectionHandler connectionHandler = new ConnectionHandler(serverSocket.accept(), config);
