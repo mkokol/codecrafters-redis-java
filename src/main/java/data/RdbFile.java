@@ -8,11 +8,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class RdbFile {
-  final byte resizeDb = (byte) 0xFB;
+  static final byte resizeDb = (byte) 0xFB;
 
-  public RdbFile(Config conf) throws IOException {
-    super();
-
+  public static void parse(Config conf) throws IOException {
     Path rdbFilePath = Paths.get(conf.getRdbDir() + '/' + conf.getRdbFileName());
 
     if (!Files.exists(rdbFilePath)) {
@@ -41,9 +39,9 @@ public class RdbFile {
       String val =
           new String(Arrays.copyOfRange(rdbFileContent, valStart + 1, valStart + valLen + 1));
 
-      keyStart = valStart + valLen + 1;
-
       Storage.set(key, val);
+
+      keyStart = valStart + valLen + 2;
     }
   }
 }

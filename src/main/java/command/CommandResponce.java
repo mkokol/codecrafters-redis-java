@@ -27,12 +27,15 @@ public class CommandResponce {
       case "COMMAND":
         send("*0\r\n");
         break;
+
       case "PING":
         send("+PONG\r\n");
         break;
+
       case "ECHO":
         send("+" + command.get(1) + "\r\n");
         break;
+
       case "SET":
         Storage.set(command.get(1), command.get(2));
 
@@ -43,6 +46,7 @@ public class CommandResponce {
 
         send("+OK\r\n");
         break;
+
       case "GET":
         String val = Storage.get(command.get(1));
 
@@ -52,6 +56,7 @@ public class CommandResponce {
           send("$-1\r\n");
         }
         break;
+
       case "CONFIG":
         if (command.get(1).toUpperCase().equals("GET")) {
           if (command.get(2).toLowerCase().equals("dir")) {
@@ -69,10 +74,10 @@ public class CommandResponce {
           }
         }
         break;
+
       case "KEYS":
         List<String> keys = Storage.getKeys();
-        StringBuilder responce = new StringBuilder();
-        responce.append("*" + String.valueOf(keys.size()) + "\r\n");
+        StringBuilder responce = new StringBuilder("*" + String.valueOf(keys.size()) + "\r\n");
 
         for (String key : keys) {
           responce.append("$" + String.valueOf(key.length()) + "\r\n" + key + "\r\n");
@@ -80,6 +85,7 @@ public class CommandResponce {
 
         send(responce.toString());
         break;
+
       default:
         System.out.println(
             String.format("Commang: '%s' is not implemented.", command.getFirst().toUpperCase()));

@@ -25,9 +25,7 @@ public class Main {
       }
     }
 
-    System.out.println("RdbDir:" + config.getRdbDir());
-    System.out.println("RdbFileName:" + config.getRdbFileName());
-    RdbFile rdbFile = new RdbFile(config);
+    RdbFile.parse(config);
 
     try {
       serverSocket = new ServerSocket(port);
