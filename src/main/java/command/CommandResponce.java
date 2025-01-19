@@ -5,6 +5,7 @@ import data.Storage;
 import data.StorageCleanUpTask;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,15 +90,10 @@ public class CommandResponce {
       case "INFO":
         Map<String, String> info = new HashMap<>();
         info.put("role", (config.getMasterHost() == null) ? "master" : "slave");
-        StringBuilder infoResponce = new StringBuilder();
+        info.put("master_replid", randomString(40));
+        info.put("master_repl_offset", "0");
 
-        for (var entry : info.entrySet()) {
-          infoResponce.append(entry.getKey() + ":" + entry.getValue());
-        }
-
-        String infoResponceMsg = infoResponce.toString();
-        send("$" + String.valueOf(infoResponceMsg.length()) + "\r\n" + infoResponceMsg + "\r\n");
-
+        response = commandBuilder.buildMap(info);
         break;
 
       default:
@@ -112,5 +108,17 @@ public class CommandResponce {
 
   public void send(String message) throws IOException {
     outSocket.write(message.getBytes());
+  }
+
+  private String randomString(int len) {
+    String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    SecureRandom secureRandom = new SecureRandom();
+    StringBuilder responce = new StringBuilder(len);
+
+    for (int i = 0; i < len; i++) {
+      responce.append(characters.charAt(secureRandom.nextInt(characters.length())));
+    }
+
+    return responce.toString();
   }
 }

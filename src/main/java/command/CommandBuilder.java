@@ -1,6 +1,8 @@
 package command;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CommandBuilder {
   public String buildString(String data) {
@@ -15,5 +17,17 @@ public class CommandBuilder {
     }
 
     return responce.toString();
+  }
+
+  public String buildMap(Map<String, String> data) {
+    List<String> infoResponce = new ArrayList<>();
+
+    for (var entry : data.entrySet()) {
+      infoResponce.add(entry.getKey() + ":" + entry.getValue());
+    }
+
+    String infoResponceMsg = String.join("\r\n", infoResponce);
+
+    return "$" + String.valueOf(infoResponceMsg.length()) + "\r\n" + infoResponceMsg + "\r\n";
   }
 }
