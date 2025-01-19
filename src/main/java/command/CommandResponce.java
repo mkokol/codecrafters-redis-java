@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 
@@ -27,17 +28,19 @@ public class CommandResponce {
       return;
     }
 
+    String response = null;
+
     switch (command.getFirst().toUpperCase()) {
       case "COMMAND":
-        send(commandBuilder.buildList(Collections.emptyList()));
+        response = commandBuilder.buildList(Collections.emptyList());
         break;
 
       case "PING":
-        send("+PONG\r\n");
+        response = commandBuilder.buildString("PONG");
         break;
 
       case "ECHO":
-        send("+" + command.get(1) + "\r\n");
+        response = commandBuilder.buildString(command.get(1));
         break;
 
       case "SET":
@@ -67,25 +70,25 @@ public class CommandResponce {
 
       case "CONFIG":
         if (command.get(1).toUpperCase().equals("GET")) {
-          if (command.get(2).toLowerCase().equals("dir")) {
-            send(
-                String.format(
-                    "*2\r\n$3\r\ndir\r\n$%d\r\n%s\r\n",
-                    config.getRdbDir().length(), config.getRdbDir()));
+          List<String> requestedConf = new ArrayList<>();
+          String requestedConfParam = command.get(2).toLowerCase();
+          requestedConf.add(requestedConfParam);
+
+          if (requestedConfParam.equals("dir")) {
+            requestedConf.add(config.getRdbDir());
           }
 
-          if (command.get(2).toLowerCase().equals("dbfilename")) {
-            send(
-                String.format(
-                    "*2\r\n$10\r\ndbfilename\r\n$%d\r\n%s\r\n",
-                    config.getRdbFileName().length(), config.getRdbFileName()));
+          if (requestedConfParam.equals("dbfilename")) {
+            requestedConf.add(config.getRdbFileName());
           }
+
+          response = commandBuilder.buildList(requestedConf);
         }
         break;
 
       case "INFO":
         Map<String, String> info = new HashMap<>();
-        info.put("role", "master");
+        info.put("role", (config.getMasterHost() == null) ? "master" : "slave");
         StringBuilder infoResponce = new StringBuilder();
 
         for (var entry : info.entrySet()) {
@@ -100,6 +103,10 @@ public class CommandResponce {
       default:
         System.out.println(
             String.format("Commang: '%s' is not implemented.", command.getFirst().toUpperCase()));
+    }
+
+    if (response != null) {
+      send(response);
     }
   }
 

@@ -17,11 +17,19 @@ public class Main {
         case "--dir":
           config.setRdbDir(args[i + 1]);
           break;
+
         case "--dbfilename":
           config.setRdbFileName(args[i + 1]);
           break;
+
         case "--port":
           config.setPort(Integer.parseInt(args[i + 1]));
+          break;
+
+        case "--replicaof":
+          String[] masterHostAndPort = args[i + 1].split(" ");
+          config.setMasterHost(masterHostAndPort[0]);
+          config.setMasterPort(masterHostAndPort[1]);
           break;
 
         default:

@@ -44,8 +44,6 @@ public class RdbFile {
         ttlData.order(ByteOrder.LITTLE_ENDIAN);
         ttl = ttlData.getLong();
 
-        System.out.println("TTL:" + String.valueOf(ttl));
-
         keyStart += 9;
       }
 
