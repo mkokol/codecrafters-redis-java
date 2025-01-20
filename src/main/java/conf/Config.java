@@ -1,11 +1,22 @@
 package conf;
 
+import java.security.SecureRandom;
+
 public class Config {
+  private String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
   private String rdbDir;
   private String rdbFileName;
   private Integer port = 6379;
   private String masterHost;
   private Integer masterPort;
+  private String replicaId;
+
+  public Config() {
+    super();
+
+    replicaId = randomString(40);
+  }
 
   public String getRdbDir() {
     return rdbDir;
@@ -49,5 +60,20 @@ public class Config {
 
   public void setMasterPort(String masterPort) {
     this.masterPort = Integer.valueOf(masterPort);
+  }
+
+  public String getReplicaId() {
+    return replicaId;
+  }
+
+  private String randomString(int len) {
+    SecureRandom secureRandom = new SecureRandom();
+    StringBuilder responce = new StringBuilder(len);
+
+    for (int i = 0; i < len; i++) {
+      responce.append(characters.charAt(secureRandom.nextInt(characters.length())));
+    }
+
+    return responce.toString();
   }
 }

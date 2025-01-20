@@ -25,6 +25,7 @@ public class SyncManager {
     handshakeCommands.add(new String[] {"PING"});
     handshakeCommands.add(new String[] {"REPLCONF", "listening-port", config.getPort().toString()});
     handshakeCommands.add(new String[] {"REPLCONF", "capa", "psync2"});
+    handshakeCommands.add(new String[] {"PSYNC", "?", "-1"});
 
     for (String[] command : handshakeCommands) {
       output.print(commandBuilder.buildList(Arrays.asList(command)));
