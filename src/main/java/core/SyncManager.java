@@ -2,7 +2,9 @@ package core;
 
 import command.CommandBuilder;
 import conf.Config;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ public class SyncManager {
 
     socket = new Socket(config.getMasterHost(), config.getMasterPort());
     PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
+    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
     CommandBuilder commandBuilder = new CommandBuilder();
     List<String[]> handshakeCommands = new ArrayList<>();
@@ -30,7 +33,7 @@ public class SyncManager {
     for (String[] command : handshakeCommands) {
       output.print(commandBuilder.buildList(Arrays.asList(command)));
       output.flush();
-      socket.getInputStream().read();
+      in.readLine();
     }
   }
 
