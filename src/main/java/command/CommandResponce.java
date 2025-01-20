@@ -6,6 +6,7 @@ import data.StorageCleanUpTask;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -110,6 +111,14 @@ public class CommandResponce {
 
     if (response != null) {
       send(response);
+    }
+
+    if (command.getFirst().toUpperCase().equals("PSYNC")) {
+      String emptyBackUpFile =
+          "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
+      byte[] decoded = Base64.getDecoder().decode(emptyBackUpFile);
+      outSocket.write(("$" + decoded.length + "\r\n").getBytes());
+      outSocket.write(decoded);
     }
   }
 
