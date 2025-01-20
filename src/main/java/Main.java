@@ -41,7 +41,7 @@ public class Main {
     }
 
     RdbFile.parse(config);
-    SyncManager.clientSync(config);
+    SyncManager.initClientSync(config);
 
     try {
       serverSocket = new ServerSocket(config.getPort());
@@ -65,5 +65,7 @@ public class Main {
         System.out.println("IOException: " + e.getMessage());
       }
     }
+
+    SyncManager.closeClientSync(config);
   }
 }

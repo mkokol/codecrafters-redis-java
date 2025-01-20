@@ -96,6 +96,10 @@ public class CommandResponce {
         response = commandBuilder.buildMap(info);
         break;
 
+      case "REPLCONF":
+        response = commandBuilder.buildString("OK");
+        break;
+
       default:
         System.out.println(
             String.format("Commang: '%s' is not implemented.", command.getFirst().toUpperCase()));
