@@ -5,7 +5,7 @@ public class Config {
   private String rdbFileName;
   private Integer port = 6379;
   private String masterHost;
-  private String masterPort;
+  private Integer masterPort;
 
   public String getRdbDir() {
     return rdbDir;
@@ -39,11 +39,15 @@ public class Config {
     this.masterHost = masterHost;
   }
 
-  public String getMasterPort() {
+  public Integer getMasterPort() {
     return masterPort;
   }
 
-  public void setMasterPort(String masterPort) {
+  public void setMasterPort(Integer masterPort) {
     this.masterPort = masterPort;
+  }
+
+  public void setMasterPort(String masterPort) {
+    this.masterPort = Integer.valueOf(masterPort);
   }
 }

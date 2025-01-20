@@ -1,4 +1,6 @@
 import conf.Config;
+import core.ConnectionHandler;
+import core.SyncManager;
 import data.RdbFile;
 import data.Storage;
 import java.io.IOException;
@@ -11,6 +13,7 @@ public class Main {
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
     Config config = new Config();
+    Storage.runCleanUp(10, TimeUnit.MINUTES);
 
     for (int i = 0; i < args.length; i += 2) {
       switch (args[i]) {
@@ -38,7 +41,7 @@ public class Main {
     }
 
     RdbFile.parse(config);
-    Storage.runCleanUp(10, TimeUnit.MINUTES);
+    SyncManager.clientSync(config);
 
     try {
       serverSocket = new ServerSocket(config.getPort());

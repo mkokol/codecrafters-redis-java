@@ -1,3 +1,5 @@
+package core;
+
 import command.CommandBuilder;
 import command.CommandParser;
 import command.CommandResponce;
