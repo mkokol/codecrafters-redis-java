@@ -18,10 +18,19 @@ public class ReplicaHandler {
     replicasScoket.add(replicaSocket);
   }
 
-  public void sendToReplicas(String message) throws IOException {
+  public void sendToReplicas(OutputStream current, String message) {
     for (OutputStream outSocket : replicasScoket) {
-      outSocket.write(message.getBytes());
-      outSocket.flush();
+      if (outSocket == current) {
+        continue;
+      }
+
+      try {
+        outSocket.write(message.getBytes());
+        outSocket.flush();
+      } catch (IOException e) {
+        // e.printStackTrace();
+        System.out.println("Errors for sending replication info");
+      }
     }
   }
 }

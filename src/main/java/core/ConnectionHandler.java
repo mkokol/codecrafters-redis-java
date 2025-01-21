@@ -8,7 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.List;
 
 public class ConnectionHandler implements Runnable {
   private final Socket connectionSocket;
@@ -33,7 +33,7 @@ public class ConnectionHandler implements Runnable {
               connectionSocket.getOutputStream(), config, commandBuilder, replicaHandler);
 
       while (true) {
-        ArrayList<String> command = commandParser.process();
+        List<String> command = commandParser.process();
         commandResponce.handleResponce(command);
       }
     } catch (IOException ioException) {

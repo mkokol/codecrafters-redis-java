@@ -31,7 +31,7 @@ public class CommandResponce {
     this.replicaHandler = replicaHandler;
   }
 
-  public void handleResponce(ArrayList<String> command) throws IOException {
+  public void handleResponce(List<String> command) throws IOException {
     if (command.size() == 0) {
       return;
     }
@@ -59,7 +59,7 @@ public class CommandResponce {
               .schedule(new StorageCleanUpTask(command.get(1)), Integer.parseInt(command.get(4)));
         }
 
-        replicaHandler.sendToReplicas(commandBuilder.buildList(command));
+        replicaHandler.sendToReplicas(outSocket, commandBuilder.buildList(command));
         response = commandBuilder.buildString("OK");
 
         break;
@@ -114,7 +114,6 @@ public class CommandResponce {
         sendEmpyDbDump();
 
         replicaHandler.addSocket(outSocket);
-
         break;
 
       default:

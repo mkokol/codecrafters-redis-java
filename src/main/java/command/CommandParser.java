@@ -3,6 +3,7 @@ package command;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CommandParser {
   private BufferedReader reader;
@@ -14,26 +15,23 @@ public class CommandParser {
     this.reader = reader;
   }
 
-  public ArrayList<String> process() throws IOException {
+  public List<String> process() throws IOException {
     byte b = (byte) reader.read();
 
     switch (b) {
       case dollarByte:
-        return processBulkReply();
+        return processBulkRequest();
+
       case asteriskByte:
-        return processMultiBulkReply();
+        return processMultiBulkRequest();
+
       default:
         return new ArrayList<String>();
     }
   }
 
-  public ArrayList<String> processMultiBulkReply() throws IOException {
+  public ArrayList<String> processMultiBulkRequest() throws IOException {
     int len = readIntCrLf();
-
-    if (len == -1) {
-      return null;
-    }
-
     ArrayList<String> record = new ArrayList<String>();
 
     for (int i = 0; i < len; i++) {
@@ -43,7 +41,7 @@ public class CommandParser {
     return record;
   }
 
-  public ArrayList<String> processBulkReply() throws IOException {
+  public ArrayList<String> processBulkRequest() throws IOException {
     int len = readIntCrLf();
 
     if (len == -1) {
@@ -51,6 +49,7 @@ public class CommandParser {
     }
 
     char[] cbuf = new char[len];
+
     reader.read(cbuf);
     reader.read(); // get rid of \r
     reader.read(); // get rid of \n

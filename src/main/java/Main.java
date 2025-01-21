@@ -43,7 +43,7 @@ public class Main {
     }
 
     RdbFile.parse(config);
-    SyncManager.initClientSync(config);
+    SyncManager.initClientSync(config, replicaHandler);
 
     try {
       serverSocket = new ServerSocket(config.getPort());

@@ -12,9 +12,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SyncManager {
-  public static Socket socket;
+  private static Socket socket;
 
-  public static void initClientSync(Config config) throws IOException {
+  public static void initClientSync(Config config, ReplicaHandler replicaHandler)
+      throws IOException {
     if (config.getMasterHost() == null || config.getMasterPort() == null) {
       return;
     }
@@ -35,6 +36,14 @@ public class SyncManager {
       output.flush();
       in.readLine();
     }
+
+    // Reade back up file
+    in.readLine();
+
+    replicaHandler.addSocket(socket.getOutputStream());
+
+    ConnectionHandler connectionHandler = new ConnectionHandler(socket, config, replicaHandler);
+    new Thread(connectionHandler).start();
   }
 
   public static void closeClientSync(Config config) throws IOException {
