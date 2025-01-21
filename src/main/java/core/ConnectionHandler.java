@@ -11,12 +11,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class ConnectionHandler implements Runnable {
-  private Socket connectionSocket;
-  private Config config;
+  private final Socket connectionSocket;
+  private final Config config;
+  private final ReplicaHandler replicaHandler;
 
-  public ConnectionHandler(Socket connectionSocket, Config config) {
+  public ConnectionHandler(Socket connectionSocket, Config config, ReplicaHandler replicaHandler) {
     this.connectionSocket = connectionSocket;
     this.config = config;
+    this.replicaHandler = replicaHandler;
   }
 
   public void run() {
@@ -27,7 +29,8 @@ public class ConnectionHandler implements Runnable {
       CommandParser commandParser = new CommandParser(reader);
       CommandBuilder commandBuilder = new CommandBuilder();
       CommandResponce commandResponce =
-          new CommandResponce(connectionSocket.getOutputStream(), config, commandBuilder);
+          new CommandResponce(
+              connectionSocket.getOutputStream(), config, commandBuilder, replicaHandler);
 
       while (true) {
         ArrayList<String> command = commandParser.process();

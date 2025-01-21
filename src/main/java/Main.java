@@ -1,5 +1,6 @@
 import conf.Config;
 import core.ConnectionHandler;
+import core.ReplicaHandler;
 import core.SyncManager;
 import data.RdbFile;
 import data.Storage;
@@ -13,6 +14,7 @@ public class Main {
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
     Config config = new Config();
+    ReplicaHandler replicaHandler = new ReplicaHandler();
     Storage.runCleanUp(10, TimeUnit.MINUTES);
 
     for (int i = 0; i < args.length; i += 2) {
@@ -51,7 +53,8 @@ public class Main {
       System.out.println("Listen on: localhost:" + config.getPort());
 
       while (true) {
-        ConnectionHandler connectionHandler = new ConnectionHandler(serverSocket.accept(), config);
+        ConnectionHandler connectionHandler =
+            new ConnectionHandler(serverSocket.accept(), config, replicaHandler);
         new Thread(connectionHandler).start();
       }
     } catch (IOException e) {

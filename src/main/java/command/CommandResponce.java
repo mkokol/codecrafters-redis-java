@@ -1,6 +1,7 @@
 package command;
 
 import conf.Config;
+import core.ReplicaHandler;
 import data.Storage;
 import data.StorageCleanUpTask;
 import java.io.IOException;
@@ -17,11 +18,17 @@ public class CommandResponce {
   private final OutputStream outSocket;
   private final Config config;
   private final CommandBuilder commandBuilder;
+  private final ReplicaHandler replicaHandler;
 
-  public CommandResponce(OutputStream outSocket, Config config, CommandBuilder commandBuilder) {
+  public CommandResponce(
+      OutputStream outSocket,
+      Config config,
+      CommandBuilder commandBuilder,
+      ReplicaHandler replicaHandler) {
     this.outSocket = outSocket;
     this.config = config;
     this.commandBuilder = commandBuilder;
+    this.replicaHandler = replicaHandler;
   }
 
   public void handleResponce(ArrayList<String> command) throws IOException {
@@ -52,7 +59,9 @@ public class CommandResponce {
               .schedule(new StorageCleanUpTask(command.get(1)), Integer.parseInt(command.get(4)));
         }
 
-        send("+OK\r\n");
+        replicaHandler.sendToReplicas(commandBuilder.buildList(command));
+        response = commandBuilder.buildString("OK");
+
         break;
 
       case "GET":
@@ -66,7 +75,7 @@ public class CommandResponce {
         break;
 
       case "KEYS":
-        send(commandBuilder.buildList(Storage.getKeys()));
+        response = commandBuilder.buildList(Storage.getKeys());
         break;
 
       case "CONFIG":
@@ -101,7 +110,11 @@ public class CommandResponce {
         break;
 
       case "PSYNC":
-        response = commandBuilder.buildString("FULLRESYNC " + config.getReplicaId() + " 0");
+        send(commandBuilder.buildString("FULLRESYNC " + config.getReplicaId() + " 0"));
+        sendEmpyDbDump();
+
+        replicaHandler.addSocket(outSocket);
+
         break;
 
       default:
@@ -112,17 +125,19 @@ public class CommandResponce {
     if (response != null) {
       send(response);
     }
-
-    if (command.getFirst().toUpperCase().equals("PSYNC")) {
-      String emptyBackUpFile =
-          "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
-      byte[] decoded = Base64.getDecoder().decode(emptyBackUpFile);
-      outSocket.write(("$" + decoded.length + "\r\n").getBytes());
-      outSocket.write(decoded);
-    }
   }
 
   public void send(String message) throws IOException {
     outSocket.write(message.getBytes());
+    outSocket.flush();
+  }
+
+  public void sendEmpyDbDump() throws IOException {
+    String emptyBackUpFile =
+        "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
+    byte[] decoded = Base64.getDecoder().decode(emptyBackUpFile);
+    outSocket.write(("$" + decoded.length + "\r\n").getBytes());
+    outSocket.write(decoded);
+    outSocket.flush();
   }
 }
