@@ -7,6 +7,7 @@ import data.StorageCleanUpTask;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,13 +15,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 
-public class CommandResponce {
+public class CommandHandler {
   private final OutputStream outSocket;
   private final Config config;
   private final CommandBuilder commandBuilder;
   private final ReplicaHandler replicaHandler;
 
-  public CommandResponce(
+  public CommandHandler(
       OutputStream outSocket,
       Config config,
       CommandBuilder commandBuilder,
@@ -66,12 +67,7 @@ public class CommandResponce {
 
       case "GET":
         String val = Storage.get(command.get(1));
-
-        if (val != null) {
-          send("$" + val.length() + "\r\n" + val + "\r\n");
-        } else {
-          send("$-1\r\n");
-        }
+        response = (val != null) ? commandBuilder.buildString(val) : "$-1\r\n";
         break;
 
       case "KEYS":
@@ -106,11 +102,16 @@ public class CommandResponce {
         break;
 
       case "REPLCONF":
-        response = commandBuilder.buildString("OK");
+        if (command.get(1).toUpperCase().equals("GETACK")) {
+          response = commandBuilder.buildList(Arrays.asList(new String[] {"REPLCONF", "ACK", "0"}));
+        } else {
+          response = commandBuilder.buildString("OK");
+        }
         break;
 
       case "PSYNC":
         send(commandBuilder.buildString("FULLRESYNC " + config.getReplicaId() + " 0"));
+        outSocket.flush();
         sendEmpyDbDump();
 
         replicaHandler.addSocket(outSocket);
@@ -119,6 +120,11 @@ public class CommandResponce {
       default:
         System.out.println(
             String.format("Commang: '%s' is not implemented.", command.getFirst().toUpperCase()));
+    }
+
+    if (outSocket == replicaHandler.getMasterSocket()
+        && !command.getFirst().toUpperCase().equals("REPLCONF")) {
+      return;
     }
 
     if (response != null) {

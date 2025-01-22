@@ -1,6 +1,8 @@
 package core;
 
 import command.CommandBuilder;
+import command.CommandHandler;
+import command.CommandParser;
 import conf.Config;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,7 +24,7 @@ public class SyncManager {
 
     socket = new Socket(config.getMasterHost(), config.getMasterPort());
     PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
-    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
     CommandBuilder commandBuilder = new CommandBuilder();
     List<String[]> handshakeCommands = new ArrayList<>();
@@ -34,16 +36,31 @@ public class SyncManager {
     for (String[] command : handshakeCommands) {
       output.print(commandBuilder.buildList(Arrays.asList(command)));
       output.flush();
-      in.readLine();
+      reader.readLine();
     }
 
     // Reade back up file
-    in.readLine();
+    reader.readLine();
 
-    replicaHandler.addSocket(socket.getOutputStream());
+    replicaHandler.setMasterSocket(socket.getOutputStream());
 
-    ConnectionHandler connectionHandler = new ConnectionHandler(socket, config, replicaHandler);
-    new Thread(connectionHandler).start();
+    CommandParser commandParser = new CommandParser(reader);
+    CommandHandler commandResponce =
+        new CommandHandler(socket.getOutputStream(), config, commandBuilder, replicaHandler);
+
+    Thread t =
+        new Thread(
+            () -> {
+              while (true) {
+                try {
+                  List<String> command = commandParser.process();
+                  commandResponce.handleResponce(command);
+                } catch (IOException e) {
+                  e.printStackTrace();
+                }
+              }
+            });
+    t.start();
   }
 
   public static void closeClientSync(Config config) throws IOException {

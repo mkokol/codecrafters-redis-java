@@ -1,8 +1,8 @@
 package core;
 
 import command.CommandBuilder;
+import command.CommandHandler;
 import command.CommandParser;
-import command.CommandResponce;
 import conf.Config;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,8 +28,8 @@ public class ConnectionHandler implements Runnable {
       BufferedReader reader = new BufferedReader(inputStreamReader);
       CommandParser commandParser = new CommandParser(reader);
       CommandBuilder commandBuilder = new CommandBuilder();
-      CommandResponce commandResponce =
-          new CommandResponce(
+      CommandHandler commandResponce =
+          new CommandHandler(
               connectionSocket.getOutputStream(), config, commandBuilder, replicaHandler);
 
       while (true) {
