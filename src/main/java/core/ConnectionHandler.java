@@ -1,39 +1,26 @@
 package core;
 
-import command.CommandBuilder;
 import command.CommandHandler;
-import command.CommandParser;
-import conf.Config;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.List;
 
 public class ConnectionHandler implements Runnable {
-  private final Socket connectionSocket;
-  private final Config config;
+  private final Socket socket;
   private final ReplicaHandler replicaHandler;
 
-  public ConnectionHandler(Socket connectionSocket, Config config, ReplicaHandler replicaHandler) {
-    this.connectionSocket = connectionSocket;
-    this.config = config;
+  public ConnectionHandler(Socket socket, ReplicaHandler replicaHandler) {
+    this.socket = socket;
     this.replicaHandler = replicaHandler;
   }
 
   public void run() {
     try {
-      InputStreamReader inputStreamReader =
-          new InputStreamReader(connectionSocket.getInputStream());
-      BufferedReader reader = new BufferedReader(inputStreamReader);
-      CommandParser commandParser = new CommandParser(reader);
-      CommandBuilder commandBuilder = new CommandBuilder();
-      CommandHandler commandResponce =
-          new CommandHandler(
-              connectionSocket.getOutputStream(), config, commandBuilder, replicaHandler);
+      Connection connection = new Connection(socket, replicaHandler);
+      CommandHandler commandResponce = new CommandHandler(connection);
 
       while (true) {
-        List<String> command = commandParser.process();
+        List<String> command = connection.readCommand();
         commandResponce.handleResponce(command);
       }
     } catch (IOException ioException) {

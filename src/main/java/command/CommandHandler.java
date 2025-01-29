@@ -1,14 +1,10 @@
 package command;
 
 import conf.Config;
-import core.ReplicaHandler;
+import core.Connection;
 import data.Storage;
 import data.StorageCleanUpTask;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -16,40 +12,28 @@ import java.util.Map;
 import java.util.Timer;
 
 public class CommandHandler {
-  private final OutputStream outSocket;
-  private final Config config;
-  private final CommandBuilder commandBuilder;
-  private final ReplicaHandler replicaHandler;
+  private final Connection connection;
 
-  public CommandHandler(
-      OutputStream outSocket,
-      Config config,
-      CommandBuilder commandBuilder,
-      ReplicaHandler replicaHandler) {
-    this.outSocket = outSocket;
-    this.config = config;
-    this.commandBuilder = commandBuilder;
-    this.replicaHandler = replicaHandler;
+  public CommandHandler(Connection connection) {
+    super();
+
+    this.connection = connection;
   }
 
   public void handleResponce(List<String> command) throws IOException {
-    if (command.size() == 0) {
-      return;
-    }
-
-    String response = null;
+    Config config = Config.getInstance();
 
     switch (command.getFirst().toUpperCase()) {
       case "COMMAND":
-        response = commandBuilder.buildList(Collections.emptyList());
+        connection.send(Collections.emptyList());
         break;
 
       case "PING":
-        response = commandBuilder.buildString("PONG");
+        connection.send("PONG");
         break;
 
       case "ECHO":
-        response = commandBuilder.buildString(command.get(1));
+        connection.send(command.get(1));
         break;
 
       case "SET":
@@ -60,35 +44,29 @@ public class CommandHandler {
               .schedule(new StorageCleanUpTask(command.get(1)), Integer.parseInt(command.get(4)));
         }
 
-        replicaHandler.sendToReplicas(outSocket, commandBuilder.buildList(command));
-        response = commandBuilder.buildString("OK");
-
+        connection.sendToReplicas(command);
+        connection.send("OK");
         break;
 
       case "GET":
-        String val = Storage.get(command.get(1));
-        response = (val != null) ? commandBuilder.buildString(val) : "$-1\r\n";
+        connection.send(Storage.get(command.get(1)));
         break;
 
       case "KEYS":
-        response = commandBuilder.buildList(Storage.getKeys());
+        connection.send(Storage.getKeys());
         break;
 
       case "CONFIG":
         if (command.get(1).toUpperCase().equals("GET")) {
-          List<String> requestedConf = new ArrayList<>();
-          String requestedConfParam = command.get(2).toLowerCase();
-          requestedConf.add(requestedConfParam);
+          String confParam = command.get(2).toLowerCase();
 
-          if (requestedConfParam.equals("dir")) {
-            requestedConf.add(config.getRdbDir());
+          if (confParam.equals("dir")) {
+            connection.send(new String[] {confParam, config.getRdbDir()});
           }
 
-          if (requestedConfParam.equals("dbfilename")) {
-            requestedConf.add(config.getRdbFileName());
+          if (confParam.equals("dbfilename")) {
+            connection.send(new String[] {confParam, config.getRdbFileName()});
           }
-
-          response = commandBuilder.buildList(requestedConf);
         }
         break;
 
@@ -98,23 +76,21 @@ public class CommandHandler {
         info.put("master_replid", config.getReplicaId());
         info.put("master_repl_offset", "0");
 
-        response = commandBuilder.buildMap(info);
+        connection.send(info);
         break;
 
       case "REPLCONF":
         if (command.get(1).toUpperCase().equals("GETACK")) {
-          response = commandBuilder.buildList(Arrays.asList(new String[] {"REPLCONF", "ACK", "0"}));
+          connection.sendReplConf();
         } else {
-          response = commandBuilder.buildString("OK");
+          connection.send("OK");
         }
         break;
 
       case "PSYNC":
-        send(commandBuilder.buildString("FULLRESYNC " + config.getReplicaId() + " 0"));
-        outSocket.flush();
-        sendEmpyDbDump();
-
-        replicaHandler.addSocket(outSocket);
+        connection.send("FULLRESYNC " + config.getReplicaId() + " 0");
+        connection.sendEmpyDbDump();
+        connection.markSocketAsReplica();
         break;
 
       default:
@@ -122,27 +98,6 @@ public class CommandHandler {
             String.format("Commang: '%s' is not implemented.", command.getFirst().toUpperCase()));
     }
 
-    if (outSocket == replicaHandler.getMasterSocket()
-        && !command.getFirst().toUpperCase().equals("REPLCONF")) {
-      return;
-    }
-
-    if (response != null) {
-      send(response);
-    }
-  }
-
-  public void send(String message) throws IOException {
-    outSocket.write(message.getBytes());
-    outSocket.flush();
-  }
-
-  public void sendEmpyDbDump() throws IOException {
-    String emptyBackUpFile =
-        "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
-    byte[] decoded = Base64.getDecoder().decode(emptyBackUpFile);
-    outSocket.write(("$" + decoded.length + "\r\n").getBytes());
-    outSocket.write(decoded);
-    outSocket.flush();
+    connection.increaseOffset(command);
   }
 }

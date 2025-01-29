@@ -13,7 +13,8 @@ public class RdbFile {
   static final byte resizeDb = (byte) 0xFB;
   static final byte msExpiry = (byte) 0xFC;
 
-  public static void parse(Config conf) throws IOException {
+  public static void parse() throws IOException {
+    Config conf = Config.getInstance();
     Path rdbFilePath = Paths.get(conf.getRdbDir() + '/' + conf.getRdbFileName());
 
     if (!Files.exists(rdbFilePath)) {

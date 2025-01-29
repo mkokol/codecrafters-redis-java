@@ -13,7 +13,7 @@ public class Main {
   public static void main(String[] args) throws IOException {
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
-    Config config = new Config();
+    Config config = Config.getInstance();
     ReplicaHandler replicaHandler = new ReplicaHandler();
     Storage.runCleanUp(10, TimeUnit.MINUTES);
 
@@ -42,19 +42,20 @@ public class Main {
       }
     }
 
-    RdbFile.parse(config);
-    SyncManager.initClientSync(config, replicaHandler);
+    System.out.println("Listen on: localhost:" + config.getPort());
 
     try {
+      RdbFile.parse();
+      SyncManager.initClientSync(replicaHandler);
+
       serverSocket = new ServerSocket(config.getPort());
       // Since the tester restarts your program quite often, setting SO_REUSEADDR
       // ensures that we don't run into 'Address already in use' errors
       serverSocket.setReuseAddress(true);
-      System.out.println("Listen on: localhost:" + config.getPort());
 
       while (true) {
         ConnectionHandler connectionHandler =
-            new ConnectionHandler(serverSocket.accept(), config, replicaHandler);
+            new ConnectionHandler(serverSocket.accept(), replicaHandler);
         new Thread(connectionHandler).start();
       }
     } catch (IOException e) {

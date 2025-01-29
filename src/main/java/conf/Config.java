@@ -3,6 +3,8 @@ package conf;
 import java.security.SecureRandom;
 
 public class Config {
+  private static Config config;
+
   private String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
   private String rdbDir;
@@ -12,10 +14,18 @@ public class Config {
   private Integer masterPort;
   private String replicaId;
 
-  public Config() {
+  private Config() {
     super();
 
     replicaId = randomString(40);
+  }
+
+  public static Config getInstance() {
+    if (config == null) {
+      config = new Config();
+    }
+
+    return config;
   }
 
   public String getRdbDir() {

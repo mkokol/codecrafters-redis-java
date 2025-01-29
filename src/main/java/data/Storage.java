@@ -9,8 +9,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Storage {
-  private static ConcurrentHashMap<String, String> data = new ConcurrentHashMap<>();
-  private static ConcurrentHashMap<String, Long> expiry = new ConcurrentHashMap<>();
+  private static Map<String, String> data = new ConcurrentHashMap<>();
+  private static Map<String, Long> expiry = new ConcurrentHashMap<>();
   private static final ScheduledExecutorService expirationScheduler =
       Executors.newScheduledThreadPool(1);
 
