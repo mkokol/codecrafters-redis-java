@@ -11,11 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
   public static void main(String[] args) throws IOException {
-    ServerSocket serverSocket = null;
-    Socket clientSocket = null;
     Config config = Config.getInstance();
-    ReplicaHandler replicaHandler = new ReplicaHandler();
-    Storage.runCleanUp(10, TimeUnit.MINUTES);
 
     for (int i = 0; i < args.length; i += 2) {
       switch (args[i]) {
@@ -43,6 +39,11 @@ public class Main {
     }
 
     System.out.println("Listen on: localhost:" + config.getPort());
+
+    ServerSocket serverSocket = null;
+    Socket clientSocket = null;
+    ReplicaHandler replicaHandler = new ReplicaHandler();
+    Storage.runCleanUp(10, TimeUnit.MINUTES);
 
     try {
       RdbFile.parse();

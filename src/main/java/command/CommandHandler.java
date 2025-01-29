@@ -93,6 +93,10 @@ public class CommandHandler {
         connection.markSocketAsReplica();
         break;
 
+      case "WAIT":
+        connection.send(0);
+        break;
+
       default:
         System.out.println(
             String.format("Commang: '%s' is not implemented.", command.getFirst().toUpperCase()));

@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 public class CommandBuilder {
+  public String build(Integer data) {
+    return String.format(":%d\r\n", data);
+  }
+
   public String build(String data) {
     if (data == null) {
       return "$-1\r\n";

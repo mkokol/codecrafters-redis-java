@@ -44,6 +44,10 @@ public class Connection {
     return cmd;
   }
 
+  public void send(Integer data) throws IOException {
+    sendMessage(commandBuilder.build(data));
+  }
+
   public void send(String data) throws IOException {
     sendMessage(commandBuilder.build(data));
   }
