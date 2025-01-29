@@ -44,4 +44,8 @@ public class ReplicaHandler {
       }
     }
   }
+
+  public Integer getSize() {
+    return replicasScoket.size();
+  }
 }

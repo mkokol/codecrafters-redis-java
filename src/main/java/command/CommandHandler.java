@@ -94,7 +94,7 @@ public class CommandHandler {
         break;
 
       case "WAIT":
-        connection.send(0);
+        connection.send(connection.getCountOfReplicas());
         break;
 
       default:

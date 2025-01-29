@@ -114,4 +114,8 @@ public class Connection {
   public void increaseOffset(List<String> command) {
     offset += commandBuilder.build(command).length();
   }
+
+  public Integer getCountOfReplicas() {
+    return replicaHandler.getSize();
+  }
 }
